@@ -9,8 +9,11 @@ class DexcomG5BluetoothPeripheralViewModel {
     /// settings specific for Dexcom G5
     private enum Settings:Int, CaseIterable {
         
+        /// transmitter start time
+        case transmitterStartDate = 0
+        
         /// firmware version
-        case firmWareVersion = 0
+        case firmWareVersion = 1
         
     }
     
@@ -195,6 +198,12 @@ extension DexcomG5BluetoothPeripheralViewModel: BluetoothPeripheralViewModel {
             
             switch setting {
                 
+            case .transmitterStartDate:
+                
+                cell.textLabel?.text = Texts_BluetoothPeripheralView.transmittterStartDate
+                cell.detailTextLabel?.text = dexcomG5.transmitterStartDate?.toString(timeStyle: .short, dateStyle: .short)
+                cell.accessoryType = .none
+                
             case .firmWareVersion:
                 
                 cell.textLabel?.text = Texts_Common.firmware
@@ -371,6 +380,21 @@ extension DexcomG5BluetoothPeripheralViewModel: CGMG5TransmitterDelegate {
         }
 
     }
+    
+    /// received transmitterStartDate
+    func received(transmitterStartDate: Date, cGMG5Transmitter: CGMG5Transmitter) {
+        
+        (bluetoothPeripheralManager as? CGMG5TransmitterDelegate)?.received(transmitterStartDate: transmitterStartDate, cGMG5Transmitter: cGMG5Transmitter)
+        
+        // transmitterStartDate should get updated in DexcomG5 object by bluetoothPeripheralManager, here's the trigger to update the table
+        
+        if let bluetoothPeripheralViewController = bluetoothPeripheralViewController {
+            reloadRow(row: Settings.firmWareVersion.rawValue, section: DexcomSection.commonDexcomSettings.rawValue + bluetoothPeripheralViewController.numberOfGeneralSections())
+        }
+        
+    }
+    
+
     
     private func reloadRow(row: Int, section: Int) {
         
